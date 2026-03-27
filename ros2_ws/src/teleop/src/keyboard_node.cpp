@@ -13,8 +13,14 @@ class KeyboardNode : public rclcpp::Node {
 		//node name: keyboard_node
 		KeyboardNode() : Node("keyboard_node"){
 			tcgetattr(STDIN_FILENO, &old_settings_);
-			RCLCPP_INFO(this->get_logger(),"Initialized.");
+			publisher_ = this->create_publisher<std_msgs::msg::String>("key_input",10);
+
+			RCLCPP_INFO(this->get_logger(),"Publisher created on /key_input");
 		}
+		~KeyboardNode(){
+			tcsetattr(STDIN_FILENO, TCSANOW, &old_settings_);
+		}
+
 		char get_key(){
 			//これから使うターミナルの設定を格納する構造体
 			struct termios new_settings = old_settings_;
@@ -31,9 +37,17 @@ class KeyboardNode : public rclcpp::Node {
 
 			return c;
 			}
+
+		void publish_key(char key) {
+			auto message = std_msgs::msg::String();
+			message.data = std::string(1,key);
+			publisher_ -> publish(message);
+		}
 	private:
 		//元のターミナルの設定を格納する構造体
-		struct termios old_settings_;	
+		struct termios old_settings_;
+		//publisher	
+		rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
 };
 
 int main(int argc, char ** argv)
@@ -46,8 +60,10 @@ int main(int argc, char ** argv)
   //rclcpp::spin(node);
   while (rclcpp::ok()){
   	char key = node->get_key();
-  	std::cout << "You pressed: [" << key << "] (ASCII: " << (int)key << ")" << std::endl;
-  
+	node->publish_key(key);
+
+	std::cout << "Send:" << key << std::endl;
+
   	if (key == 27){
 		std::cout << "Exit signal received." << std::endl;
 		break;
