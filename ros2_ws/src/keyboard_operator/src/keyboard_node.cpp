@@ -21,6 +21,22 @@ class KeyboardNode : public rclcpp::Node {
 			tcsetattr(STDIN_FILENO, TCSANOW, &old_settings_);
 		}
 
+		void run() {
+			RCLCPP_INFO(this->get_logger(),"Running keyboard loop...");
+			while (rclcpp::ok()){
+				char key = get_key();
+				publish_key(key);
+				if(key == 27) break;
+			}
+		}
+
+	private:
+		//元のターミナルの設定を格納する構造体
+		struct termios old_settings_;
+
+		// publisher (using Publisher of rclcpp)
+		rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+		
 		char get_key(){
 			//これから使うターミナルの設定を格納する構造体
 			struct termios new_settings = old_settings_;
@@ -43,11 +59,6 @@ class KeyboardNode : public rclcpp::Node {
 			message.data = std::string(1,key);
 			publisher_ -> publish(message);
 		}
-	private:
-		//元のターミナルの設定を格納する構造体
-		struct termios old_settings_;
-		//publisher	
-		rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
 };
 
 int main(int argc, char ** argv)
@@ -58,18 +69,7 @@ int main(int argc, char ** argv)
   auto node = std::make_shared<KeyboardNode>();
 
   //rclcpp::spin(node);
-  while (rclcpp::ok()){
-  	char key = node->get_key();
-	node->publish_key(key);
-
-	std::cout << "Send:" << key << std::endl;
-
-  	if (key == 27){
-		std::cout << "Exit signal received." << std::endl;
-		break;
-	}
-  }
-
+  node->run();
   rclcpp::shutdown();
 
   return 0;
