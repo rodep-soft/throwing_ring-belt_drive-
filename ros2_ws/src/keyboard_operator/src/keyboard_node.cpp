@@ -13,6 +13,7 @@ class KeyboardNode : public rclcpp::Node {
 		//node name: keyboard_node
 		KeyboardNode() : Node("keyboard_node"){
 			tcgetattr(STDIN_FILENO, &old_settings_);
+			//topic name
 			publisher_ = this->create_publisher<std_msgs::msg::String>("key_input",10);
 
 			RCLCPP_INFO(this->get_logger(),"Publisher created on /key_input");
@@ -34,7 +35,7 @@ class KeyboardNode : public rclcpp::Node {
 		//元のターミナルの設定を格納する構造体
 		struct termios old_settings_;
 
-		// publisher (using Publisher of rclcpp)
+		// publisher (using Publisher in rclcpp)
 		rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
 		
 		char get_key(){
