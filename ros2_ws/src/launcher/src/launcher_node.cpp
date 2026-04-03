@@ -2,6 +2,9 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <std_srvs/srv/empty.hpp>
+#include <vector>
+#include <deque>
+#include <cmath>
 
 class LauncherNode : public rclcpp::Node {
 	public:
@@ -15,13 +18,14 @@ class LauncherNode : public rclcpp::Node {
 		}
 
 	private:
-		int height = 0.70;
+		float target_height = 0.70;
+		float target_distance;
 		bool is_shooting = false;
 
 		rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr subscriber_;
 		rclcpp::Service<std_srvs::srv::Empty>::SharedPtr server_;
 		//record distance data
-		float distance_;//---------------------------
+		std::deque<sensor_msgs::msg::LaserScan::ConstSharedPtr> scan_buffer;
 		
 		void start_subscribe_scan() {
 			subscriber_ = this->create_subscription<sensor_msgs::msg::LaserScan>(
@@ -32,7 +36,18 @@ class LauncherNode : public rclcpp::Node {
 			//----------
 			RCLCPP_INFO(this->get_logger(), "distance middle %f ", msg->ranges[540]);
 			RCLCPP_INFO(this->get_logger(), "num of data %zu", msg->ranges.size());
+
+			//new_target_distance = calculate_distance_average(msg);
+			int n = 10;
+			for(int i=0; i<n;i++){
+				float distance = msg->ranges[msg->ranges.size()-n)/2+i+1];
+				if(distance > 0 && distance < 40){
+						}
+			}
+			//queueにいれる();
+
 		}
+
 		void handle_service(const std::shared_ptr<std_srvs::srv::Empty::Request> request,
 				std::shared_ptr<std_srvs::srv::Empty::Response> response)
 		{
@@ -43,8 +58,10 @@ class LauncherNode : public rclcpp::Node {
 
 		//----------calculate goal position()
 		}
-		float calculate_goal_position(float distance, float height){
+		float calculate_goal_position(float target_distance, float target_height){
 		//-------------------------
+			target_distance;
+			target_height;
 		}
 };
 
